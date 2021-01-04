@@ -29,6 +29,7 @@ public class BinanceWebSocketClient {
 
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
+        System.out.println("Socket disconnected");
     }
 
     @OnMessage
@@ -36,8 +37,12 @@ public class BinanceWebSocketClient {
         System.out.println(msg);
     }
 
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        System.out.println(throwable);
+    }
+
     public void disconnect() throws IOException {
-        System.out.println("Socket disconnected");
         userSession.close();
     }
 }
