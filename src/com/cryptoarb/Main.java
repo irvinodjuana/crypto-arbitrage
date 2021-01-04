@@ -1,28 +1,18 @@
 package com.cryptoarb;
 
-import com.cryptoarb.uribuilders.BinanceUriBuilder;
-import com.cryptoarb.websocketclients.BinanceWebSocketClient;
+import com.cryptoarb.Configuration.ConfigurationProvider;
+import com.cryptoarb.Configuration.IConfigurationProvider;
+import com.cryptoarb.HttpClients.BinanceHttpClient;
+import com.cryptoarb.HttpClients.IBinanceHttpClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        List<String> symbols = new ArrayList<>();
-        symbols.add("ETHBTC");
-        symbols.add("LTCBTC");
-        symbols.add("QTUMETH");
-        String streamUri = BinanceUriBuilder.buildBookTickerStreamUri(symbols);
+        IConfigurationProvider configurationProvider = new ConfigurationProvider();
+        IBinanceHttpClient binanceHttpClient = new BinanceHttpClient(configurationProvider);
 
-        BinanceWebSocketClient webSocketClient = new BinanceWebSocketClient();
-        webSocketClient.connect(streamUri);
-
-        Thread.sleep(5000);
-
-        webSocketClient.disconnect();
-
-        System.out.println("Program end.");
+        System.out.println(binanceHttpClient.getBookTickers());
     }
 }

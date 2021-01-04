@@ -1,12 +1,15 @@
-package com.cryptoarb.uribuilders;
+package com.cryptoarb.UriBuilders;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BinanceUriBuilder {
+public class BinanceUriBuilder implements IBinanceUriBuilder {
     private static final String BookTickerStreamUriBase = "wss://stream.binance.com:9443/stream?streams=";
 
-    public static String buildBookTickerStreamUri(List<String> symbols) {
+    public BinanceUriBuilder() {
+    }
+
+    public String buildBookTickerStreamUri(List<String> symbols) {
         String tickerNames = symbols.stream()
                 .map(BinanceUriBuilder::getStreamName)
                 .collect(Collectors.joining("/"));

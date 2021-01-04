@@ -1,4 +1,4 @@
-package com.cryptoarb.websocketclients;
+package com.cryptoarb.WebSocketClients;
 
 import javax.websocket.*;
 import java.io.IOException;
