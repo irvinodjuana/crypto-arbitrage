@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BinanceUriBuilder implements IBinanceUriBuilder {
-    private String multiStreamUriBase = "wss://stream.binance.com:9443/stream?streams=";
+    private String multiStreamUriBase;
 
     public BinanceUriBuilder(IConfigurationProvider configurationProvider) {
         multiStreamUriBase = configurationProvider.getBinanceStreamUri() + "/streams?streams=";

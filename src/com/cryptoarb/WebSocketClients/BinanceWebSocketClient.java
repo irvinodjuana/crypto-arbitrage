@@ -1,21 +1,27 @@
 package com.cryptoarb.WebSocketClients;
 
+import com.cryptoarb.UriBuilders.IBinanceUriBuilder;
+
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @ClientEndpoint
 public class BinanceWebSocketClient {
     private WebSocketContainer container;
     private Session userSession = null;
+    private IBinanceUriBuilder binanceUriBuilder;
 
-    public BinanceWebSocketClient() {
+    public BinanceWebSocketClient(IBinanceUriBuilder binanceUriBuilder) {
         container = ContainerProvider.getWebSocketContainer();
+        this.binanceUriBuilder = binanceUriBuilder;
     }
 
-    public void connect(String socketServer) {
+    public void connect(List<String> symbols) {
         try {
+            String socketServer = binanceUriBuilder.buildBookTickerStreamUri(symbols);
             userSession = container.connectToServer(this, new URI(socketServer));
         } catch (DeploymentException | URISyntaxException | IOException e) {
             e.printStackTrace();
