@@ -3,5 +3,6 @@ package com.cryptoarb.UriBuilders;
 import java.util.List;
 
 public interface IBinanceUriBuilder {
-    String buildBookTickerStreamUri(List<String> symbols);
+    String buildPartialTickersStreamUri(List<String> symbols);
+    String buildAllTickersStreamUri();
 }

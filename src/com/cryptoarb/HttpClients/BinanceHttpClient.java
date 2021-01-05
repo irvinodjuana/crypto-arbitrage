@@ -21,27 +21,27 @@ public class BinanceHttpClient implements IBinanceHttpClient {
     private String exchangeInfoUri;
 
     public BinanceHttpClient(IConfigurationProvider configurationProvider) {
-        String binanceApiUri = configurationProvider.getBinanceApiUri();
+        var binanceApiUri = configurationProvider.getBinanceApiUri();
         bookTickerUri = binanceApiUri + "/ticker/bookTicker";
         exchangeInfoUri = binanceApiUri + "/exchangeInfo";
     }
 
     public List<BookTickerDto> getBookTickers() throws IOException, InterruptedException {
-        HttpResponse<String> response = httpGet(bookTickerUri);
-        Type type = new TypeToken<ArrayList<BookTickerDto>>() {}.getType();
+        var response = httpGet(bookTickerUri);
+        var type = new TypeToken<ArrayList<BookTickerDto>>() {}.getType();
         return deserializeJson(response, type);
     }
 
     public ExchangeInfoDto getExchangeInfo() throws IOException, InterruptedException {
-        HttpResponse<String> response = httpGet(exchangeInfoUri);
-        Type type = new TypeToken<ExchangeInfoDto>() {}.getType();
+        var response = httpGet(exchangeInfoUri);
+        var type = new TypeToken<ExchangeInfoDto>() {}.getType();
         return deserializeJson(response, type);
     }
 
     private HttpResponse<String> httpGet(String uri) throws IOException, InterruptedException {
-        HttpClient httpClient = HttpClient.newHttpClient();
+        var httpClient = HttpClient.newHttpClient();
 
-        HttpRequest request = HttpRequest.newBuilder()
+        var request = HttpRequest.newBuilder()
                 .GET()
                 .header(HttpConsts.AcceptHeader, HttpConsts.ApplicationJson)
                 .uri(URI.create(uri))
@@ -51,7 +51,7 @@ public class BinanceHttpClient implements IBinanceHttpClient {
     }
 
     private static <T> T deserializeJson(HttpResponse<String> response, Type type) {
-        Gson gson = new Gson();
+        var gson = new Gson();
         return gson.fromJson(response.body(), type);
     }
 

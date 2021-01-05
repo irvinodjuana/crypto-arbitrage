@@ -9,15 +9,19 @@ public class BinanceUriBuilder implements IBinanceUriBuilder {
     private String multiStreamUriBase;
 
     public BinanceUriBuilder(IConfigurationProvider configurationProvider) {
-        multiStreamUriBase = configurationProvider.getBinanceStreamUri() + "/streams?streams=";
+        multiStreamUriBase = configurationProvider.getBinanceStreamUri() + "/stream?streams=";
     }
 
-    public String buildBookTickerStreamUri(List<String> symbols) {
-        String tickerNames = symbols.stream()
+    public String buildPartialTickersStreamUri(List<String> symbols) {
+        var tickerNames = symbols.stream()
                 .map(BinanceUriBuilder::getStreamName)
                 .collect(Collectors.joining("/"));
 
         return multiStreamUriBase + tickerNames;
+    }
+
+    public String buildAllTickersStreamUri() {
+        return multiStreamUriBase + "!bookTicker";
     }
 
     private static String getStreamName(String symbol) {

@@ -6,26 +6,33 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 @ClientEndpoint
-public class BinanceWebSocketClient {
+public class BinanceWebSocketClient implements IBinanceWebSocketClient {
     private WebSocketContainer container;
     private Session userSession = null;
     private IBinanceUriBuilder binanceUriBuilder;
+    private List<IWebSocketListener> listeners;
 
     public BinanceWebSocketClient(IBinanceUriBuilder binanceUriBuilder) {
         container = ContainerProvider.getWebSocketContainer();
         this.binanceUriBuilder = binanceUriBuilder;
+        listeners = new ArrayList<>();
     }
 
-    public void connect(List<String> symbols) {
-        try {
-            String socketServer = binanceUriBuilder.buildBookTickerStreamUri(symbols);
-            userSession = container.connectToServer(this, new URI(socketServer));
-        } catch (DeploymentException | URISyntaxException | IOException e) {
-            e.printStackTrace();
-        }
+    public void connectPartial(List<String> symbols) throws URISyntaxException, IOException, DeploymentException {
+        String socketServer = binanceUriBuilder.buildPartialTickersStreamUri(symbols);
+        disconnect();
+        userSession = container.connectToServer(this, new URI(socketServer));
+    }
+
+    @Override
+    public void connectAll() throws URISyntaxException, IOException, DeploymentException {
+        String socketServer = binanceUriBuilder.buildAllTickersStreamUri();
+        disconnect();
+        userSession = container.connectToServer(this, new URI(socketServer));
     }
 
     @OnOpen
@@ -40,6 +47,7 @@ public class BinanceWebSocketClient {
 
     @OnMessage
     public void onMessage(Session session, String msg) {
+        listeners.forEach(IWebSocketListener::onSocketUpdate);
         System.out.println(msg);
     }
 
@@ -49,6 +57,13 @@ public class BinanceWebSocketClient {
     }
 
     public void disconnect() throws IOException {
-        userSession.close();
+        if (userSession != null) {
+            userSession.close();
+        }
+    }
+
+    @Override
+    public void addListener(IWebSocketListener listener) {
+        listeners.add(listener);
     }
 }
