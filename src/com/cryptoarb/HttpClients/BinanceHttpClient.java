@@ -3,6 +3,7 @@ package com.cryptoarb.HttpClients;
 import com.cryptoarb.Configuration.IConfigurationProvider;
 import com.cryptoarb.Consts.HttpConsts;
 import com.cryptoarb.Dtos.BookTickerDto;
+import com.cryptoarb.Dtos.ExchangeInfoDto;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -17,14 +18,23 @@ import java.util.List;
 
 public class BinanceHttpClient implements IBinanceHttpClient {
     private String bookTickerUri;
+    private String exchangeInfoUri;
 
     public BinanceHttpClient(IConfigurationProvider configurationProvider) {
-        bookTickerUri = configurationProvider.getBinanceApiUri() + "/ticker/bookTicker";
+        String binanceApiUri = configurationProvider.getBinanceApiUri();
+        bookTickerUri = binanceApiUri + "/ticker/bookTicker";
+        exchangeInfoUri = binanceApiUri + "/exchangeInfo";
     }
 
     public List<BookTickerDto> getBookTickers() throws IOException, InterruptedException {
         HttpResponse<String> response = httpGet(bookTickerUri);
         Type type = new TypeToken<ArrayList<BookTickerDto>>() {}.getType();
+        return deserializeJson(response, type);
+    }
+
+    public ExchangeInfoDto getExchangeInfo() throws IOException, InterruptedException {
+        HttpResponse<String> response = httpGet(exchangeInfoUri);
+        Type type = new TypeToken<ExchangeInfoDto>() {}.getType();
         return deserializeJson(response, type);
     }
 
@@ -40,7 +50,7 @@ public class BinanceHttpClient implements IBinanceHttpClient {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private List<BookTickerDto> deserializeJson(HttpResponse<String> response, Type type) {
+    private static <T> T deserializeJson(HttpResponse<String> response, Type type) {
         Gson gson = new Gson();
         return gson.fromJson(response.body(), type);
     }

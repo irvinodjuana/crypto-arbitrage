@@ -14,5 +14,6 @@ public class Main {
         IBinanceHttpClient binanceHttpClient = new BinanceHttpClient(configurationProvider);
 
         System.out.println(binanceHttpClient.getBookTickers());
+        System.out.println(binanceHttpClient.getExchangeInfo());
     }
 }
