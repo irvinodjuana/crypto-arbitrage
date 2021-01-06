@@ -1,5 +1,7 @@
 package com.cryptoarb;
 
+import com.cryptoarb.ArbitrageFinders.BinanceArbitrageFinder;
+import com.cryptoarb.ArbitrageFinders.IBinanceArbitrageFinder;
 import com.cryptoarb.Configuration.ConfigurationProvider;
 import com.cryptoarb.Configuration.IConfigurationProvider;
 import com.cryptoarb.HttpClients.BinanceHttpClient;
@@ -11,8 +13,6 @@ import com.cryptoarb.UriBuilders.IBinanceUriBuilder;
 import com.cryptoarb.WebSocketClients.BinanceWebSocketClient;
 import com.cryptoarb.WebSocketClients.IBinanceWebSocketClient;
 
-import java.io.IOException;
-
 public class Main {
 
     public static void main(String[] args) {
@@ -20,7 +20,11 @@ public class Main {
         IBinanceHttpClient binanceHttpClient = new BinanceHttpClient(configurationProvider);
         IBinanceUriBuilder binanceUriBuilder = new BinanceUriBuilder(configurationProvider);
         IBinanceWebSocketClient binanceWebSocketClient = new BinanceWebSocketClient(binanceUriBuilder);
-        IBinanceProcessManager binanceProcessManager = new BinanceProcessManager(binanceHttpClient, binanceWebSocketClient);
+        IBinanceArbitrageFinder binanceArbitrageFinder = new BinanceArbitrageFinder();
+        IBinanceProcessManager binanceProcessManager = new BinanceProcessManager(
+                binanceHttpClient,
+                binanceWebSocketClient,
+                binanceArbitrageFinder);
 
         binanceProcessManager.start();
     }

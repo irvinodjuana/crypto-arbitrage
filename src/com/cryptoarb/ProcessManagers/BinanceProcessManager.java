@@ -1,21 +1,26 @@
 package com.cryptoarb.ProcessManagers;
 
-import com.cryptoarb.Dtos.BookTickerDto;
+import com.cryptoarb.ArbitrageFinders.IBinanceArbitrageFinder;
+import com.cryptoarb.Helpers.BookTickerConverter;
 import com.cryptoarb.HttpClients.IBinanceHttpClient;
 import com.cryptoarb.WebSocketClients.IBinanceWebSocketClient;
 
 import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.stream.Collectors;
 
 public class BinanceProcessManager implements IBinanceProcessManager {
     private IBinanceHttpClient binanceHttpClient;
     private IBinanceWebSocketClient binanceWebSocketClient;
+    private IBinanceArbitrageFinder binanceArbitrageFinder;
 
-    public BinanceProcessManager(IBinanceHttpClient binanceHttpClient, IBinanceWebSocketClient binanceWebSocketClient) {
+    public BinanceProcessManager(
+            IBinanceHttpClient binanceHttpClient,
+            IBinanceWebSocketClient binanceWebSocketClient,
+            IBinanceArbitrageFinder binanceArbitrageFinder) {
         this.binanceHttpClient = binanceHttpClient;
         this.binanceWebSocketClient = binanceWebSocketClient;
+        this.binanceArbitrageFinder = binanceArbitrageFinder;
     }
 
     public void start() {
@@ -27,13 +32,17 @@ public class BinanceProcessManager implements IBinanceProcessManager {
     }
 
     private void connectAllStreams() throws IOException, InterruptedException, URISyntaxException, DeploymentException {
-        var bookTickers = binanceHttpClient.getBookTickers();
-        var symbols = bookTickers.stream()
-                .map(BookTickerDto::getSymbol)
-                .collect(Collectors.toList());
+        var bookTickerDtos = binanceHttpClient.getBookTickers();
+        var exchangeInfo = binanceHttpClient.getExchangeInfo();
+
+        var bookTickers = BookTickerConverter.createBookTickers(bookTickerDtos, exchangeInfo);
+
+        binanceWebSocketClient.addListener(binanceArbitrageFinder);
 
         binanceWebSocketClient.connectAll();
         Thread.sleep(500);
         binanceWebSocketClient.disconnect();
     }
+
+
 }

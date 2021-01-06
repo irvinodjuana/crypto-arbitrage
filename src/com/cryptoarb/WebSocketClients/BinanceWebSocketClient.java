@@ -48,7 +48,6 @@ public class BinanceWebSocketClient implements IBinanceWebSocketClient {
     @OnMessage
     public void onMessage(Session session, String msg) {
         listeners.forEach(IWebSocketListener::onSocketUpdate);
-        System.out.println(msg);
     }
 
     @OnError
