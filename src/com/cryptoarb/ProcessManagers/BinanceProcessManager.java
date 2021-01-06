@@ -38,11 +38,9 @@ public class BinanceProcessManager implements IBinanceProcessManager {
         var bookTickers = BookTickerConverter.createBookTickers(bookTickerDtos, exchangeInfo);
 
         binanceWebSocketClient.addListener(binanceArbitrageFinder);
-
         binanceWebSocketClient.connectAll();
-        Thread.sleep(500);
+        binanceArbitrageFinder.startSearch(bookTickers);
+
         binanceWebSocketClient.disconnect();
     }
-
-
 }

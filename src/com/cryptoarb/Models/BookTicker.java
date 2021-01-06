@@ -58,4 +58,17 @@ public class BookTicker {
     public boolean isActive() {
         return bidPrice > 0 && askPrice > 0 && bidQty > 0 && askQty > 0;
     }
+
+    @Override
+    public String toString() {
+        return "BookTicker{" +
+                "symbol='" + symbol + '\'' +
+                ", baseAsset='" + baseAsset + '\'' +
+                ", quoteAsset='" + quoteAsset + '\'' +
+                ", bidPrice=" + bidPrice +
+                ", bidQty=" + bidQty +
+                ", askPrice=" + askPrice +
+                ", askQty=" + askQty +
+                '}';
+    }
 }

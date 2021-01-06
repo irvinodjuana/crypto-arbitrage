@@ -1,9 +1,14 @@
 package com.cryptoarb.WebSocketClients;
 
+import com.cryptoarb.Dtos.ExchangeInfoDto;
+import com.cryptoarb.Dtos.StreamDto;
 import com.cryptoarb.UriBuilders.IBinanceUriBuilder;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import javax.websocket.*;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -47,7 +52,9 @@ public class BinanceWebSocketClient implements IBinanceWebSocketClient {
 
     @OnMessage
     public void onMessage(Session session, String msg) {
-        listeners.forEach(IWebSocketListener::onSocketUpdate);
+        var streamType = new TypeToken<StreamDto>() {}.getType();
+        StreamDto streamDto = deserializeJson(msg, streamType);
+        listeners.forEach(l -> l.onSocketUpdate(streamDto));
     }
 
     @OnError
@@ -64,5 +71,10 @@ public class BinanceWebSocketClient implements IBinanceWebSocketClient {
     @Override
     public void addListener(IWebSocketListener listener) {
         listeners.add(listener);
+    }
+
+    private static <T> T deserializeJson(String json, Type type) {
+        var gson = new Gson();
+        return gson.fromJson(json, type);
     }
 }

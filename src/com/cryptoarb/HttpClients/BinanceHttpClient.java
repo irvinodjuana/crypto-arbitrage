@@ -29,13 +29,13 @@ public class BinanceHttpClient implements IBinanceHttpClient {
     public List<BookTickerDto> getBookTickers() throws IOException, InterruptedException {
         var response = httpGet(bookTickerUri);
         var type = new TypeToken<ArrayList<BookTickerDto>>() {}.getType();
-        return deserializeJson(response, type);
+        return deserializeJson(response.body(), type);
     }
 
     public ExchangeInfoDto getExchangeInfo() throws IOException, InterruptedException {
         var response = httpGet(exchangeInfoUri);
         var type = new TypeToken<ExchangeInfoDto>() {}.getType();
-        return deserializeJson(response, type);
+        return deserializeJson(response.body(), type);
     }
 
     private HttpResponse<String> httpGet(String uri) throws IOException, InterruptedException {
@@ -50,9 +50,8 @@ public class BinanceHttpClient implements IBinanceHttpClient {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private static <T> T deserializeJson(HttpResponse<String> response, Type type) {
+    private static <T> T deserializeJson(String json, Type type) {
         var gson = new Gson();
-        return gson.fromJson(response.body(), type);
+        return gson.fromJson(json, type);
     }
-
 }
