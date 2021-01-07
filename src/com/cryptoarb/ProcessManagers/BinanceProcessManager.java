@@ -1,8 +1,8 @@
 package com.cryptoarb.ProcessManagers;
 
 import com.cryptoarb.ArbitrageFinders.IBinanceArbitrageFinder;
-import com.cryptoarb.Helpers.BookTickerConverter;
 import com.cryptoarb.HttpClients.IBinanceHttpClient;
+import com.cryptoarb.Utils.BookTickerConverter;
 import com.cryptoarb.WebSocketClients.IBinanceWebSocketClient;
 
 import javax.websocket.DeploymentException;

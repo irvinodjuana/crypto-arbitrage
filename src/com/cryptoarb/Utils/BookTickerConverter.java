@@ -1,4 +1,4 @@
-package com.cryptoarb.Helpers;
+package com.cryptoarb.Utils;
 
 import com.cryptoarb.Dtos.BookTickerDto;
 import com.cryptoarb.Dtos.ExchangeInfoDto;

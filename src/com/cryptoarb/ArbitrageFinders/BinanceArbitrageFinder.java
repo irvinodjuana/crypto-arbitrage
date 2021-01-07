@@ -2,7 +2,9 @@ package com.cryptoarb.ArbitrageFinders;
 
 import com.cryptoarb.Dtos.StreamDto;
 import com.cryptoarb.Models.BookTicker;
+import com.cryptoarb.Models.DirectedGraph;
 import com.cryptoarb.Models.Edge;
+import com.cryptoarb.Utils.GraphUtils;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -10,10 +12,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     private Map<String, BookTicker> bookTickerMap;
-    private double[][] priceMatrix;
+    private double[][] weightMatrix;
     private List<Edge> edges;
     private BiMap<String, Integer> currencyIndexBiMap;
     private int numVertices;
@@ -26,11 +29,7 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     }
 
     public void onSocketUpdate(StreamDto streamDto) {
-        if (bookTickerMap.containsKey(streamDto.getData().getSymbol())) {
-            System.out.println("Update to known symbol");
-        } else {
-            System.out.println("Unknown symbol updated");
-        }
+        // TODO: update prices
     }
 
     public void startSearch(List<BookTicker> bookTickers) throws InterruptedException {
@@ -42,16 +41,21 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
             edges.add(new Edge(quoteIndex, baseIndex));
         }
 
-        priceMatrix = new double[numVertices][numVertices];
+        weightMatrix = new double[numVertices][numVertices];
 
         for (var bookTicker : bookTickers) {
             int baseIndex = currencyIndexBiMap.get(bookTicker.getBaseAsset());
             int quoteIndex = currencyIndexBiMap.get(bookTicker.getQuoteAsset());
-            priceMatrix[quoteIndex][baseIndex] = 1.0 / bookTicker.getAskPrice();
-            priceMatrix[baseIndex][quoteIndex] = bookTicker.getBidPrice();
+            weightMatrix[quoteIndex][baseIndex] = -Math.log(1.0 / bookTicker.getAskPrice());
+            weightMatrix[baseIndex][quoteIndex] = -Math.log(bookTicker.getBidPrice());
         }
+        var graph = new DirectedGraph(numVertices, weightMatrix, edges);
+        var arbitrageCycle = GraphUtils.findNegativeCycle(graph);
 
-//        Thread.sleep(5000);
+        // TODO: Extract method here and refactor to graph member variable
+        System.out.println(arbitrageCycle.stream().map(idx -> currencyIndexBiMap.inverse().get(idx)).collect(Collectors.toList()));
+
+        Thread.sleep(5000);
     }
 
     private int insertIntoBiMap(String currency) {

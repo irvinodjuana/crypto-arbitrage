@@ -1,16 +1,16 @@
-package com.cryptoarb.Helpers;
+package com.cryptoarb.Utils;
 
 import com.cryptoarb.Models.DirectedGraph;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class GraphUtils {
-    public static boolean detectNegativeCycles(DirectedGraph graph) {
+    public static List<Integer> findNegativeCycle(DirectedGraph graph) {
         var numVertices = graph.getNumVertices();
         var weights = graph.getWeights();
 
         if (numVertices == 0) {
-            return false;
+            return new ArrayList<>();
         }
         if (weights.length != numVertices || weights[0].length != numVertices) {
             throw new IllegalArgumentException("Weights array should have dimensions (numVertices x numVertices)");
@@ -19,7 +19,7 @@ public class GraphUtils {
         return bellmanFordAlgorithm(graph);
     }
 
-    private static boolean bellmanFordAlgorithm(DirectedGraph graph) {
+    private static List<Integer> bellmanFordAlgorithm(DirectedGraph graph) {
         final var NO_PREDECESSOR = -1;
         var numVertices = graph.getNumVertices();
 
@@ -31,7 +31,7 @@ public class GraphUtils {
         Arrays.fill(predecessor, NO_PREDECESSOR);
 
         findShortestPathPredecessors(graph, distance, predecessor);
-        return checkForNegativeCycles(graph, distance);
+        return extractNegativeCycle(graph, distance, predecessor);
     }
 
     private static void findShortestPathPredecessors(DirectedGraph graph, double[] distance, int[] predecessor) {
@@ -40,6 +40,8 @@ public class GraphUtils {
         var edges = graph.getEdges();
 
         for (int i = 0; i < numVertices - 1; i++) {
+            var distanceUpdated = false;
+            
             for (var edge : edges) {
                 int src = edge.getSrc();
                 int dst = edge.getDest();
@@ -47,12 +49,17 @@ public class GraphUtils {
                 if (distance[src] + weights[src][dst] < distance[dst]) {
                     distance[dst] = distance[src] + weights[src][dst];
                     predecessor[dst] = src;
+                    distanceUpdated = true;
                 }
+            }
+
+            if (!distanceUpdated) {
+                break;
             }
         }
     }
 
-    private static boolean checkForNegativeCycles(DirectedGraph graph, double[] distance) {
+    private static List<Integer> extractNegativeCycle(DirectedGraph graph, double[] distance, int[] predecessor) {
         var weights = graph.getWeights();
         var edges = graph.getEdges();
 
@@ -61,10 +68,31 @@ public class GraphUtils {
             int dst = edge.getDest();
 
             if (distance[src] + weights[src][dst] < distance[dst]) {
-                return true;
+                return extractNegativeCycleWithVertex(predecessor, src);
             }
         }
 
-        return false;
+        return new ArrayList<>();
+    }
+
+    private static List<Integer> extractNegativeCycleWithVertex(int[] predecessor, int src) {
+        var indexMap = new HashMap<Integer, Integer>();
+        var index = 0;
+        var nextPredecessor = src;
+        List<Integer> negativeCycleList = new ArrayList<Integer>();
+
+        while (!indexMap.containsKey(nextPredecessor)) {
+            negativeCycleList.add(nextPredecessor);
+            indexMap.put(nextPredecessor, index);
+            index++;
+            nextPredecessor = predecessor[nextPredecessor];
+        }
+
+        int start = indexMap.get(nextPredecessor);
+        int end = negativeCycleList.size();
+        negativeCycleList = negativeCycleList.subList(start, end);
+        Collections.reverse(negativeCycleList);
+
+        return negativeCycleList;
     }
 }
