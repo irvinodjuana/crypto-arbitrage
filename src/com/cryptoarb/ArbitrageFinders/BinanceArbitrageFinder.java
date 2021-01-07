@@ -1,5 +1,6 @@
 package com.cryptoarb.ArbitrageFinders;
 
+import com.cryptoarb.Dtos.StreamBookTickerDto;
 import com.cryptoarb.Dtos.StreamDto;
 import com.cryptoarb.Models.BookTicker;
 import com.cryptoarb.Models.DirectedGraph;
@@ -12,24 +13,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     private Map<String, BookTicker> bookTickerMap;
+    private BiMap<String, Integer> currencyIndexBiMap;
+    private ConcurrentHashMap<String, StreamBookTickerDto> latestStreamData;
+
+    private int numVertices;
     private double[][] weightMatrix;
     private List<Edge> edges;
-    private BiMap<String, Integer> currencyIndexBiMap;
-    private int numVertices;
 
     public BinanceArbitrageFinder() {
         bookTickerMap = new HashMap<>();
-        edges = new ArrayList<>();
         currencyIndexBiMap = HashBiMap.create();
+        latestStreamData = new ConcurrentHashMap<>();
         numVertices = 0;
+        edges = new ArrayList<>();
     }
 
     public void onSocketUpdate(StreamDto streamDto) {
-        // TODO: update prices
+        var symbol = streamDto.getData().getSymbol();
+        latestStreamData.put(symbol, streamDto.getData());
     }
 
     public void startSearch(List<BookTicker> bookTickers) throws InterruptedException {
@@ -44,18 +50,43 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
         weightMatrix = new double[numVertices][numVertices];
 
         for (var bookTicker : bookTickers) {
-            int baseIndex = currencyIndexBiMap.get(bookTicker.getBaseAsset());
-            int quoteIndex = currencyIndexBiMap.get(bookTicker.getQuoteAsset());
-            weightMatrix[quoteIndex][baseIndex] = -Math.log(1.0 / bookTicker.getAskPrice());
-            weightMatrix[baseIndex][quoteIndex] = -Math.log(bookTicker.getBidPrice());
+            updateWeightMatrix(bookTicker);
         }
+
+        while (true) {
+            Thread.sleep(1000);
+            System.out.println(findArbitrageCycles());
+            updatePrices();
+        }
+    }
+
+    private List<String> findArbitrageCycles() {
         var graph = new DirectedGraph(numVertices, weightMatrix, edges);
         var arbitrageCycle = GraphUtils.findNegativeCycle(graph);
 
-        // TODO: Extract method here and refactor to graph member variable
-        System.out.println(arbitrageCycle.stream().map(idx -> currencyIndexBiMap.inverse().get(idx)).collect(Collectors.toList()));
+        return arbitrageCycle.stream()
+                .map(idx -> currencyIndexBiMap.inverse().get(idx))
+                .collect(Collectors.toList());
+    }
 
-        Thread.sleep(5000);
+    private void updatePrices() {
+        for (var streamBookTicker : latestStreamData.values()) {
+            if (!bookTickerMap.containsKey(streamBookTicker.getSymbol())) {
+                continue;
+            }
+            var bookTicker = bookTickerMap.get(streamBookTicker.getSymbol());
+            bookTicker.setData(streamBookTicker);
+            updateWeightMatrix(bookTicker);
+        }
+
+        latestStreamData.clear();
+    }
+
+    private void updateWeightMatrix(BookTicker bookTicker) {
+        int baseIndex = currencyIndexBiMap.get(bookTicker.getBaseAsset());
+        int quoteIndex = currencyIndexBiMap.get(bookTicker.getQuoteAsset());
+        weightMatrix[quoteIndex][baseIndex] = -Math.log(1.0 / bookTicker.getAskPrice());
+        weightMatrix[baseIndex][quoteIndex] = -Math.log(bookTicker.getBidPrice());
     }
 
     private int insertIntoBiMap(String currency) {
@@ -64,9 +95,5 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
             numVertices++;
         }
         return currencyIndexBiMap.get(currency);
-    }
-
-    private List<List<String>> findArbitrageCycles() {
-        return new ArrayList<>();
     }
 }

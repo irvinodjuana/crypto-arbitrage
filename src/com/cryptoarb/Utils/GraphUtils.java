@@ -88,6 +88,7 @@ public class GraphUtils {
             nextPredecessor = predecessor[nextPredecessor];
         }
 
+        negativeCycleList.add(nextPredecessor);
         int start = indexMap.get(nextPredecessor);
         int end = negativeCycleList.size();
         negativeCycleList = negativeCycleList.subList(start, end);

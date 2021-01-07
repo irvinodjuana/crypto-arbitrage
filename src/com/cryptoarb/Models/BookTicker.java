@@ -1,5 +1,7 @@
 package com.cryptoarb.Models;
 
+import com.cryptoarb.Dtos.StreamBookTickerDto;
+
 public class BookTicker {
     private String symbol;
     private String baseAsset;
@@ -49,6 +51,13 @@ public class BookTicker {
 
     public boolean isActive() {
         return bidPrice > 0 && askPrice > 0 && bidQty > 0 && askQty > 0;
+    }
+
+    public void setData(StreamBookTickerDto streamData) {
+        bidPrice = streamData.getBidPrice();
+        bidQty = streamData.getBidQty();
+        askPrice = streamData.getAskPrice();
+        askQty = streamData.getAskQty();
     }
 
     @Override
