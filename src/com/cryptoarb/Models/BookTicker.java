@@ -9,10 +9,10 @@ public class BookTicker {
     private double askPrice;
     private double askQty;
 
-    public BookTicker(String symbol, double bidPrice, double bidQty, double askPrice, double askQty) {
+    public BookTicker(String symbol, String baseAsset, String quoteAsset, double bidPrice, double bidQty, double askPrice, double askQty) {
         this.symbol = symbol;
-        this.baseAsset = null;
-        this.quoteAsset = null;
+        this.baseAsset = baseAsset;
+        this.quoteAsset = quoteAsset;
         this.bidPrice = bidPrice;
         this.bidQty = bidQty;
         this.askPrice = askPrice;
@@ -27,16 +27,8 @@ public class BookTicker {
         return baseAsset;
     }
 
-    public void setBaseAsset(String baseAsset) {
-        this.baseAsset = baseAsset;
-    }
-
     public String getQuoteAsset() {
         return quoteAsset;
-    }
-
-    public void setQuoteAsset(String quoteAsset) {
-        this.quoteAsset = quoteAsset;
     }
 
     public double getBidPrice() {
