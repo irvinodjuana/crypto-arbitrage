@@ -51,7 +51,7 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
             priceMatrix[baseIndex][quoteIndex] = bookTicker.getBidPrice();
         }
 
-        Thread.sleep(5000);
+//        Thread.sleep(5000);
     }
 
     private int insertIntoBiMap(String currency) {
