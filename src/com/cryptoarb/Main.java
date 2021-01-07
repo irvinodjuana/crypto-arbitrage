@@ -2,6 +2,8 @@ package com.cryptoarb;
 
 import com.cryptoarb.ArbitrageFinders.BinanceArbitrageFinder;
 import com.cryptoarb.ArbitrageFinders.IBinanceArbitrageFinder;
+import com.cryptoarb.Calculators.IProfitCalculator;
+import com.cryptoarb.Calculators.ProfitCalculator;
 import com.cryptoarb.Configuration.ConfigurationProvider;
 import com.cryptoarb.Configuration.IConfigurationProvider;
 import com.cryptoarb.HttpClients.BinanceHttpClient;
@@ -20,7 +22,8 @@ public class Main {
         IBinanceHttpClient binanceHttpClient = new BinanceHttpClient(configurationProvider);
         IBinanceUriBuilder binanceUriBuilder = new BinanceUriBuilder(configurationProvider);
         IBinanceWebSocketClient binanceWebSocketClient = new BinanceWebSocketClient(binanceUriBuilder);
-        IBinanceArbitrageFinder binanceArbitrageFinder = new BinanceArbitrageFinder();
+        IProfitCalculator profitCalculator = new ProfitCalculator(configurationProvider);
+        IBinanceArbitrageFinder binanceArbitrageFinder = new BinanceArbitrageFinder(profitCalculator);
         IBinanceProcessManager binanceProcessManager = new BinanceProcessManager(
                 binanceHttpClient,
                 binanceWebSocketClient,

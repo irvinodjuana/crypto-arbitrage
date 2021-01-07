@@ -1,5 +1,6 @@
 package com.cryptoarb.ArbitrageFinders;
 
+import com.cryptoarb.Calculators.IProfitCalculator;
 import com.cryptoarb.Dtos.StreamBookTickerDto;
 import com.cryptoarb.Dtos.StreamDto;
 import com.cryptoarb.Models.BookTicker;
@@ -17,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
+    private IProfitCalculator profitCalculator;
     private Map<String, BookTicker> bookTickerMap;
     private BiMap<String, Integer> currencyIndexBiMap;
     private ConcurrentHashMap<String, StreamBookTickerDto> latestStreamData;
@@ -25,7 +27,8 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     private double[][] weightMatrix;
     private List<Edge> edges;
 
-    public BinanceArbitrageFinder() {
+    public BinanceArbitrageFinder(IProfitCalculator profitCalculator) {
+        this.profitCalculator = profitCalculator;
         bookTickerMap = new HashMap<>();
         currencyIndexBiMap = HashBiMap.create();
         latestStreamData = new ConcurrentHashMap<>();
@@ -55,18 +58,24 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
 
         while (true) {
             Thread.sleep(1000);
-            System.out.println(findArbitrageCycles());
+            findArbitrageCycles();
             updatePrices();
         }
     }
 
-    private List<String> findArbitrageCycles() {
+    private void findArbitrageCycles() {
         var graph = new DirectedGraph(numVertices, weightMatrix, edges);
         var arbitrageCycle = GraphUtils.findNegativeCycle(graph);
 
-        return arbitrageCycle.stream()
+        var netProfit = profitCalculator.calculateNetProfit(arbitrageCycle, weightMatrix);
+
+        var tradeCurrencies = arbitrageCycle.stream()
                 .map(idx -> currencyIndexBiMap.inverse().get(idx))
-                .collect(Collectors.toList());
+                .collect(Collectors.joining(" -> "));
+
+        if (netProfit > 1.0) {
+            System.out.println(String.format("Profit: %f | %s", netProfit, tradeCurrencies));
+        }
     }
 
     private void updatePrices() {
