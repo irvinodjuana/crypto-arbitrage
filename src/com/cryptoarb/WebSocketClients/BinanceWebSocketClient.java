@@ -2,6 +2,7 @@ package com.cryptoarb.WebSocketClients;
 
 import com.cryptoarb.Dtos.ExchangeInfoDto;
 import com.cryptoarb.Dtos.StreamDto;
+import com.cryptoarb.Loggers.ILogger;
 import com.cryptoarb.UriBuilders.IBinanceUriBuilder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -16,14 +17,16 @@ import java.util.List;
 
 @ClientEndpoint
 public class BinanceWebSocketClient implements IBinanceWebSocketClient {
+    private IBinanceUriBuilder binanceUriBuilder;
+    private ILogger logger;
     private WebSocketContainer container;
     private Session userSession = null;
-    private IBinanceUriBuilder binanceUriBuilder;
     private List<IWebSocketListener> listeners;
 
-    public BinanceWebSocketClient(IBinanceUriBuilder binanceUriBuilder) {
-        container = ContainerProvider.getWebSocketContainer();
+    public BinanceWebSocketClient(IBinanceUriBuilder binanceUriBuilder, ILogger logger) {
         this.binanceUriBuilder = binanceUriBuilder;
+        this.logger = logger;
+        container = ContainerProvider.getWebSocketContainer();
         listeners = new ArrayList<>();
     }
 
@@ -42,12 +45,12 @@ public class BinanceWebSocketClient implements IBinanceWebSocketClient {
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
-        System.out.println("Socket connected");
+        logger.log("Socket connected");
     }
 
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        System.out.println("Socket disconnected");
+        logger.log("Socket disconnected");
     }
 
     @OnMessage

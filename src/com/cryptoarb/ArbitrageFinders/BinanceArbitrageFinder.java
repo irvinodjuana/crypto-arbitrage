@@ -1,8 +1,10 @@
 package com.cryptoarb.ArbitrageFinders;
 
 import com.cryptoarb.Calculators.IProfitCalculator;
+import com.cryptoarb.Configuration.IConfigurationProvider;
 import com.cryptoarb.Dtos.StreamBookTickerDto;
 import com.cryptoarb.Dtos.StreamDto;
+import com.cryptoarb.Loggers.ILogger;
 import com.cryptoarb.Models.BookTicker;
 import com.cryptoarb.Models.DirectedGraph;
 import com.cryptoarb.Models.Edge;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     private IProfitCalculator profitCalculator;
+    private IConfigurationProvider configurationProvider;
+    private ILogger logger;
     private Map<String, BookTicker> bookTickerMap;
     private BiMap<String, Integer> currencyIndexBiMap;
     private ConcurrentHashMap<String, StreamBookTickerDto> latestStreamData;
@@ -27,8 +31,13 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
     private double[][] weightMatrix;
     private List<Edge> edges;
 
-    public BinanceArbitrageFinder(IProfitCalculator profitCalculator) {
+    public BinanceArbitrageFinder(
+            IProfitCalculator profitCalculator,
+            IConfigurationProvider configurationProvider,
+            ILogger logger) {
         this.profitCalculator = profitCalculator;
+        this.configurationProvider = configurationProvider;
+        this.logger = logger;
         bookTickerMap = new HashMap<>();
         currencyIndexBiMap = HashBiMap.create();
         latestStreamData = new ConcurrentHashMap<>();
@@ -49,15 +58,21 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
             edges.add(new Edge(baseIndex, quoteIndex));
             edges.add(new Edge(quoteIndex, baseIndex));
         }
-
         weightMatrix = new double[numVertices][numVertices];
 
         for (var bookTicker : bookTickers) {
             updateWeightMatrix(bookTicker);
         }
 
-        while (true) {
-            Thread.sleep(1000);
+        repeatCycle();
+    }
+
+    private void repeatCycle() throws InterruptedException {
+        long endTime = System.currentTimeMillis() + configurationProvider.getProcessTimeoutMs();
+        long cycleDelayMs = configurationProvider.getCycleDelayMs();
+
+        while (System.currentTimeMillis() < endTime) {
+            Thread.sleep(cycleDelayMs);
             findArbitrageCycles();
             updatePrices();
         }
@@ -74,7 +89,7 @@ public class BinanceArbitrageFinder implements IBinanceArbitrageFinder {
                 .collect(Collectors.joining(" -> "));
 
         if (netProfit > 1.0) {
-            System.out.println(String.format("Profit: %f | %s", netProfit, tradeCurrencies));
+            logger.log(String.format("Profit: %f | %s", netProfit, tradeCurrencies));
         }
     }
 

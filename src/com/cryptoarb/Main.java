@@ -8,6 +8,8 @@ import com.cryptoarb.Configuration.ConfigurationProvider;
 import com.cryptoarb.Configuration.IConfigurationProvider;
 import com.cryptoarb.HttpClients.BinanceHttpClient;
 import com.cryptoarb.HttpClients.IBinanceHttpClient;
+import com.cryptoarb.Loggers.ConsoleLogger;
+import com.cryptoarb.Loggers.ILogger;
 import com.cryptoarb.ProcessManagers.BinanceProcessManager;
 import com.cryptoarb.ProcessManagers.IBinanceProcessManager;
 import com.cryptoarb.UriBuilders.BinanceUriBuilder;
@@ -19,15 +21,15 @@ public class Main {
 
     public static void main(String[] args) {
         IConfigurationProvider configurationProvider = new ConfigurationProvider();
+        ILogger logger = new ConsoleLogger();
         IBinanceHttpClient binanceHttpClient = new BinanceHttpClient(configurationProvider);
         IBinanceUriBuilder binanceUriBuilder = new BinanceUriBuilder(configurationProvider);
-        IBinanceWebSocketClient binanceWebSocketClient = new BinanceWebSocketClient(binanceUriBuilder);
+        IBinanceWebSocketClient binanceWebSocketClient = new BinanceWebSocketClient(binanceUriBuilder, logger);
         IProfitCalculator profitCalculator = new ProfitCalculator(configurationProvider);
-        IBinanceArbitrageFinder binanceArbitrageFinder = new BinanceArbitrageFinder(profitCalculator);
+        IBinanceArbitrageFinder binanceArbitrageFinder = new BinanceArbitrageFinder(
+                profitCalculator, configurationProvider, logger);
         IBinanceProcessManager binanceProcessManager = new BinanceProcessManager(
-                binanceHttpClient,
-                binanceWebSocketClient,
-                binanceArbitrageFinder);
+                binanceHttpClient, binanceWebSocketClient, binanceArbitrageFinder);
 
         binanceProcessManager.start();
     }
