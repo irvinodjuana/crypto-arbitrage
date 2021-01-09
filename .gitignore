@@ -23,7 +23,10 @@
 hs_err_pid*
 
 # IDEA
-out/
+out/production/*
 
 # OS X
 .DS_Store
+
+# Exceptions
+!**/crypto-arbitrage.jar
