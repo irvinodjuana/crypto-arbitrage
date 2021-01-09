@@ -2,7 +2,7 @@
 Cryptocurrency Arbitrage Finder
 
 ## Overview
-This project is for finding triangular arbitrage opportunities on the Binance cryptocurrency exchange. The graph algorithms used can find arbitrage cycles of arbitrary length. WebSocket streams with the Binance API are used for live price updates, and profits are calculated net of fees.
+This project is for finding triangular arbitrage opportunities on the Binance cryptocurrency exchange. The graph algorithms used can find circular arbitrage combinations of arbitrary length. WebSocket streams with the Binance API are used for live price updates, and profits are calculated net of fees.
 
 ## Setup
 
